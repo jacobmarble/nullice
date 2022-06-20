@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"github.com/pkg/errors"
 	"io"
@@ -73,7 +74,7 @@ func handleConn(ctx context.Context, conn *net.TCPConn) error {
 	br := bufio.NewReaderSize(conn, bufSize)
 
 	for { // handle header
-		line, err := br.ReadString('\n')
+		line, err := br.ReadBytes('\n')
 		if err == io.EOF {
 			log.Println("client closed connection before header complete")
 			return nil
@@ -84,10 +85,11 @@ func handleConn(ctx context.Context, conn *net.TCPConn) error {
 			return errors.WithMessage(err, "failed to read from connection")
 		}
 
-		if line == "\n" {
+		if bytes.Equal(line, []byte{'\n'}) {
 			break
 		}
-		log.Printf("header: %s", line)
+		log.Printf("header: '%# x'\n", line)
+		log.Printf("header: '%s'", line)
 	}
 
 	_, err := conn.Write([]byte("HTTP/1.0 200 OK\n\n"))
