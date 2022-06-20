@@ -67,6 +67,8 @@ func handleConn(ctx context.Context, conn *net.TCPConn) error {
 		}
 	}()
 
+	log.Printf("new connection from %s\n", conn.RemoteAddr().String())
+
 	br := bufio.NewReader(conn)
 
 	for { // handle header
