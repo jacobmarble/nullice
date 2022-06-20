@@ -85,10 +85,9 @@ func handleConn(ctx context.Context, conn *net.TCPConn) error {
 			return errors.WithMessage(err, "failed to read from connection")
 		}
 
-		if bytes.Equal(line, []byte{'\n'}) {
+		if bytes.Equal(line, []byte("\r\n")) {
 			break
 		}
-		log.Printf("header: '%# x'\n", line)
 		log.Printf("header: '%s'", line)
 	}
 
