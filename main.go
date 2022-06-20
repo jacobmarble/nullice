@@ -88,6 +88,13 @@ func handleConn(ctx context.Context, conn *net.TCPConn) error {
 		if bytes.Equal(line, []byte("\r\n")) {
 			break
 		}
+		if len(line) > 0 && line[len(line)-1] == '\n' {
+			if len(line) > 1 && line[len(line)-2] == '\r' {
+				line = line[:len(line)-2]
+			} else {
+				line = line[:len(line)-1]
+			}
+		}
 		log.Printf("header: '%s'", line)
 	}
 
