@@ -69,7 +69,8 @@ func handleConn(ctx context.Context, conn *net.TCPConn) error {
 
 	log.Printf("new connection from %s\n", conn.RemoteAddr().String())
 
-	br := bufio.NewReader(conn)
+	const bufSize = 32 * 1024
+	br := bufio.NewReaderSize(conn, bufSize)
 
 	for { // handle header
 		line, err := br.ReadString('\n')
@@ -100,7 +101,7 @@ func handleConn(ctx context.Context, conn *net.TCPConn) error {
 		return errors.WithMessage(err, "failed to write to connection")
 	}
 
-	b := make([]byte, 32*1024)
+	b := make([]byte, bufSize)
 
 	n := 0
 	timeStart := time.Now()
@@ -108,9 +109,8 @@ func handleConn(ctx context.Context, conn *net.TCPConn) error {
 	for { // handle body
 		nDelta, err := br.Read(b)
 		if err == io.EOF {
-			duration := time.Now().Sub(timeStart)
-			log.Printf("end of body after %d bytes and %s (%.2f KB/s)\n", n, duration.String(), float64(n)/duration.Seconds()/1000)
-			return nil
+			log.Println("end of request body")
+			break
 		} else if errors.Is(err, net.ErrClosed) {
 			log.Println("service shutdown while reading body")
 			return nil
@@ -121,4 +121,8 @@ func handleConn(ctx context.Context, conn *net.TCPConn) error {
 		n += nDelta
 		log.Printf("read %d bytes\n", nDelta)
 	}
+
+	duration := time.Now().Sub(timeStart)
+	log.Printf("end of body after %d bytes and %s (%.2f KB/s)\n", n, duration.String(), float64(n)/duration.Seconds()/1000)
+	return nil
 }
