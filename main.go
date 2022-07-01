@@ -4,22 +4,33 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"fmt"
 	"github.com/pkg/errors"
 	"io"
 	"log"
 	"net"
+	"os"
 	"os/signal"
 	"syscall"
 	"time"
 )
 
 func main() {
+	var ipAddress string
+	port := "8000"
+	if len(os.Args) > 1 {
+		ipAddress = os.Args[1]
+		if len(os.Args) > 2 {
+			port = os.Args[2]
+		}
+	}
+
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
 	lc := new(net.ListenConfig)
 
-	listener, err := lc.Listen(ctx, "tcp", ":8000")
+	listener, err := lc.Listen(ctx, "tcp", fmt.Sprintf("%s:%s", ipAddress, port))
 	if err != nil {
 		log.Fatalln(err)
 	}
